@@ -22,8 +22,8 @@ if not notebook_file.exists():
 
 
 page_section_file = Path(HERE).parent / 'data_base' / 'page_section.parquet'
-page_section_columns = ['id', 'page_number','created_at','group','distillation_at', 'distillated','memorized', 'translated_sentence', 'sentence_id', 'notebook_id']
-page_section_types = ['Int64', 'Int64', 'datetime64[ns]', str, 'datetime64[ns]', bool, bool, 'Int64', 'Int64' ]
+page_section_columns = ['id', 'page_number','created_at', 'created_by_id','group','distillation_at', 'distillated','memorized', 'translated_sentence', 'sentence_id', 'notebook_id']
+page_section_types = ['Int64', 'Int64', 'datetime64[ns]', 'datetime64[ns]', str, 'datetime64[ns]', bool, bool, 'Int64', 'Int64' ]
 if not page_section_file.exists():
     df = pd.DataFrame(columns=page_section_columns)
     df = df.astype(dict(zip(page_section_columns, page_section_types)))
@@ -174,7 +174,52 @@ class PageSectionDAO(AbstractDAO):
         pass
 
     def get_by_id(self, entity: PageSection) -> PageSection:
-        pass
+        df = pd.read_parquet(page_section_file)
+
+        df_result = df[df['page_number'] == entity.page_number]
+
+        if df_result.empty:
+            return None
+
+        sentence_dao = SentenceDAO()
+        notebook_dao = NotebookDAO()        
+
+        sentence_id_list         = []
+        translated_sentence_list = []
+        memorized_list           = []
+        id_list                  = []
+        for index, row in df_result.iterrows():
+            id_list.append(row['id'])
+            sentence_id_list.append(row['sentence_id'])
+            translated_sentence_list.append(row['translated_sentence'])
+            memorized_list.append(row['memorized'])
+        else:
+            sentences = []
+            for id_ in sentence_id_list:
+                sentences.append(
+                    sentence_dao.get_by_id(
+                        Sentence(id_=id_)
+                    )
+                )
+
+            notebook = notebook_dao.get_by_id(
+                Notebook(id_=row['notebook_id'])
+            )
+        
+            page_section = PageSection(
+                id_                  = min(id_list),
+                page_number          = row['page_number'],
+                created_at           = row['created_at'],                    
+                group                = Group(row['group']),
+                distillation_at      = row['distillation_at'],
+                distillated          = row['distillated'],
+                memorializeds        = memorized_list,
+                translated_sentences = translated_sentence_list,
+                sentences            = sentences,
+                notebook             = notebook
+            )
+
+            return page_section
 
     def update(self, entity: PageSection) -> bool:
         df = pd.read_parquet(page_section_file)
@@ -187,7 +232,6 @@ class PageSectionDAO(AbstractDAO):
             raise Exception(f'Changing PageSection "group {entity.group.value}" is not allowed because it has already been distilled.')
 
         id_list = df_page['id'].tolist()
-
         entity.set_id(min(id_list))
 
         df.drop(df[df['page_number'] == entity.page_number].index, inplace=True)
@@ -218,6 +262,9 @@ class PageSectionDAO(AbstractDAO):
                 value = int(value.id)
             elif isinstance(value, Group):
                 value = value.value            
+            elif isinstance(value, PageSection):
+                attr = 'created_by_id'
+                value = value.created_by.page_number
             elif isinstance(value, datetime.date):
                 value = pd.to_datetime(value).strftime("%Y-%m-%d")
             elif attr in 'page_number distillated':
@@ -234,10 +281,10 @@ class PageSectionDAO(AbstractDAO):
         pages = df_result['page_number'].unique().tolist()
 
         for page in pages:
-            sentence_id_list = []
+            sentence_id_list         = []
             translated_sentence_list = []
-            memorized_list = []
-            id_list = []
+            memorized_list           = []
+            id_list                  = []
 
             df_page = df_result[df['page_number'] == page].copy()
             for index, row in df_page.iterrows():
@@ -258,17 +305,24 @@ class PageSectionDAO(AbstractDAO):
                     Notebook(id_=row['notebook_id'])
                 )
 
+                created_by = self.get_by_id(
+                    PageSection(page_number=row['created_by_id'])
+                )
+
                 page_section_list.append(
-                    PageSection(id_=min(id_list),
-                                page_number=row['page_number'],
-                                created_at=row['created_at'],
-                                group=Group(row['group']),
-                                distillation_at=row['distillation_at'],
-                                distillated=row['distillated'],
-                                memorializeds=memorized_list,
-                                translated_sentences=translated_sentence_list,
-                                sentences=sentences,
-                                notebook=notebook)
+                    PageSection(
+                        id_                  = min(id_list),
+                        page_number          = row['page_number'],
+                        created_at           = row['created_at'],
+                        created_by           = created_by,
+                        group                = Group(row['group']),
+                        distillation_at      = row['distillation_at'],
+                        distillated          = row['distillated'],
+                        memorializeds        = memorized_list,
+                        translated_sentences = translated_sentence_list,
+                        sentences            = sentences,
+                        notebook             = notebook
+                    )
                 )
 
         return page_section_list

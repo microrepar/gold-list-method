@@ -19,6 +19,7 @@ placehold_container_msg.empty()
 # app to add indendation in the sidebar
 add_page_title()  # Optional method to add title and icon to current page
 
+page_section_dao = PageSectionDAO()
 notebook_dao = NotebookDAO()
 notebooks_list = notebook_dao.get_all()
 notebook_dict = {n.name: n for n in notebooks_list}
@@ -90,10 +91,15 @@ if len(notebooks_list) > 0:
             page_section = build_page_section_with_sentence_list(dataframe=df_result,
                                                                 selected_day=selected_day,
                                                                 notebook=notebook,
-                                                                group=Group.HEADLIST)
+                                                                group=Group.HEADLIST,
+                                                                persit=False)
+            page_section_dao.insert(page_section)
+
             placehold_sentences_sheet.success(f'{page_section} was inserted with success!')
+            st.toast('Page section was inserted success.')
             placehold_btn_insert.empty()
         except Exception as error:
+            st.toast('Something went wrong!')
             placehold_container_msg.error(str(error), icon="🚨")
             if 'There is already a page'.upper() in str(error).upper():
                 placehold_page_exists.error(str(error), icon="🚨")

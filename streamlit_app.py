@@ -31,7 +31,8 @@ notebooks_list = notebook_dao.get_all()
 notebook_dict = {n.name: n for n in notebooks_list}
 
 if len(notebooks_list) > 0:
-    selected_notebook = st.sidebar.selectbox('**NOTEBOOK:**', [n.name for n in notebooks_list])
+    selected_notebook = st.sidebar.selectbox('**NOTEBOOK:**', 
+                                             [n.name for n in notebooks_list])
 
     notebook: Notebook = notebook_dict.get(selected_notebook)
 
@@ -40,7 +41,9 @@ if len(notebooks_list) > 0:
     
     st.sidebar.divider()
 
-    selected_day = st.sidebar.date_input('**LIST OF THE DAY:**', datetime.datetime.now().date(), format='DD/MM/YYYY')
+    selected_day = st.sidebar.date_input('**LIST OF THE DAY:**', 
+                                         datetime.datetime.now().date(), 
+                                         format='DD/MM/YYYY')
 
     page_section_group_a = notebook.get_page_section(distillation_at=selected_day, 
                                                      group=Group.HEADLIST)
@@ -130,25 +133,28 @@ if len(notebooks_list) > 0:
 
     tab1, tab2, tab3, tab4 = st.tabs(['HeadLits/Group A', 'Group B', 'Group C', 'Group D'])
 
-
+##########################GroupA Section####################################
     with tab1:
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            read_aloud_a = st.checkbox('Read aloud', value=True, key='read_aloud_a', disabled=True)
-        with col2:
-            translate_a = st.checkbox('Translate', value=True, key='translate_a', disabled=True)
-        with col3:
-            distill_a = st.checkbox('Distill', key='distill_a',
-                                    value=True if page_section_group_a and page_section_group_a.distillated else False,
-                                    disabled=True if page_section_group_a and page_section_group_a.distillated else False)
-        
         placehold_data_edit_headlist = st.empty()
         with placehold_data_edit_headlist:
             placehold_container_dt_edit_headlist = st.container()
-
+            with placehold_container_dt_edit_headlist:
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    read_aloud_a = st.checkbox('Read aloud', value=True, 
+                                               key='read_aloud_a', disabled=True)
+                with col2:
+                    translate_a = st.checkbox('Translate', value=True, 
+                                              key='translate_a', disabled=True)
+                with col3:
+                    distill_a = st.checkbox('Distill', key='distill_a',
+                                            value=True if page_section_group_a \
+                                                and page_section_group_a.distillated else False,
+                                            disabled=True if page_section_group_a \
+                                                and page_section_group_a.distillated else False)
         
         if read_aloud_a and not translate_a and not distill_a:
-            dfa_destilled = placehold_container_dt_edit_headlist.data_editor(
+            dfa_distilled = placehold_container_dt_edit_headlist.data_editor(
                 dfa[['foreign_language']],
                 column_config=column_configuration,
                 use_container_width=True,
@@ -158,7 +164,7 @@ if len(notebooks_list) > 0:
                 key='dt_edit_group_a'
             )
         elif translate_a and not distill_a:
-            dfa_destilled = placehold_container_dt_edit_headlist.data_editor(
+            dfa_distilled = placehold_container_dt_edit_headlist.data_editor(
                 dfa[['foreign_language', 'translated_sentence']],
                 column_config=column_configuration,
                 use_container_width=True,
@@ -168,9 +174,12 @@ if len(notebooks_list) > 0:
                     else ['translated_sentence', 'foreign_language'],
                 key='dt_edit_group_a'
             )
-            btn_update_a = placehold_container_dt_edit_headlist.button('RECORD TRANSLATION', use_container_width=True, type='primary', key='btn_record_group_a')
+            btn_update_a = placehold_container_dt_edit_headlist.button('RECORD TRANSLATION', 
+                                                                       use_container_width=True, 
+                                                                       type='primary', 
+                                                                       key='btn_record_group_a')
         elif distill_a:
-            dfa_destilled = placehold_container_dt_edit_headlist.data_editor(
+            dfa_distilled = placehold_container_dt_edit_headlist.data_editor(
                 dfa[['remembered', 'foreign_language', 'translated_sentence', 'mother_tongue',]],
                 column_config=column_configuration,
                 use_container_width=True,
@@ -183,8 +192,10 @@ if len(notebooks_list) > 0:
             )
         
         if btn_update_a:
-            dfa_destilled['remembered'] = False
-            page_section_update_a: PageSection = build_page_section_with_sentence_list(dataframe=dfa_destilled,
+
+            dfa_update = dfa_distilled.copy()
+            dfa_update['remembered'] = False
+            page_section_update_a: PageSection = build_page_section_with_sentence_list(dataframe=dfa_update,
                                                         selected_day=page_section_group_a.created_at.date(), 
                                                         notebook=notebook, 
                                                         group=page_section_group_a.group,
@@ -192,19 +203,19 @@ if len(notebooks_list) > 0:
             page_section_update_a.page_number = page_section_group_a.page_number
             try:
                 page_section_dao.update(page_section_update_a)
+                st.toast('Sentence translation was updated!')
             except Exception as error:
-                    placehold_container_msg.error(str(error), icon="🚨")
-                    if 'There is already a page'.upper() in str(error).upper():
-                        st.error(str(error), icon="🚨")
+                    placehold_container_msg.error(str(error), icon="🚨")                    
 
         if distill_a and not dfa.empty:
             if placehold_container_dt_edit_headlist.button('DISTILLATION FINISH HEADLIST', 
                                                            use_container_width=True, 
                                                            type='primary', 
                                                            key='btn_group_a',
-                                                           disabled=True if page_section_group_a.distillated else False):
+                                                           disabled=True if page_section_group_a.distillated \
+                                                                            else False):
                 try:
-                    page_section_update_a: PageSection = build_page_section_with_sentence_list(dataframe=dfa_destilled,
+                    page_section_update_a: PageSection = build_page_section_with_sentence_list(dataframe=dfa_distilled,
                                                           selected_day=page_section_group_a.created_at.date(), 
                                                           notebook=notebook, 
                                                           group=page_section_group_a.group,
@@ -212,41 +223,46 @@ if len(notebooks_list) > 0:
                     page_section_update_a.page_number = page_section_group_a.page_number
                     page_section_update_a.distillated = True
                     page_section_dao.update(page_section_update_a)
+                    st.toast('Saving the distillation...')
                     
-                    dfa_base = dfa_destilled[dfa_destilled['remembered'] == False].copy()
+                    dfa_base = dfa_distilled[dfa_distilled['remembered'] == False].copy()
                     dfa_base['translated_sentence'] = ''
                     page_section_after_a = build_page_section_with_sentence_list(dataframe=dfa_base,
                                                           selected_day=selected_day, 
                                                           notebook=notebook, 
-                                                          group=Group.B)
+                                                          group=Group.B,
+                                                          persit=False)
+                    page_section_after_a.set_created_by(page_section_group_a)
+                    page_section_dao.insert(page_section_after_a)
                     
                     placehold_data_edit_headlist.success(f'{page_section_after_a} was inserted success!')
                 except Exception as error:
                     placehold_container_msg.error(str(error), icon="🚨")
+                    st.toast('Something went wrong!')
                     if 'There is already a page'.upper() in str(error).upper():
                         st.error(str(error), icon="🚨")
 
         if dfa.empty:
-            placehold_data_edit_headlist.warning('⚠️There is no a list of expressions in "Group A" to distill on the selected day!')
+            placehold_data_edit_headlist.warning('⚠️There is no a list of expressions '
+                                                 'in "Group A" to distill on the selected day!')
     
-  
 
+##########################GroupB Section####################################
     with tab2:
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            read_aloud_b = st.checkbox('Read aloud', value=True, key='read_aloud_b', disabled=True)
-        with col2:
-            translate_b = st.checkbox('Translate', value=True, key='translate_b', disabled=True)
-        with col3:
-            distill_b = st.checkbox('Distill', key='distill_b')
-        
         placehold_data_edit_group_b = st.empty()
         with placehold_data_edit_group_b:
             placehold_container_dt_edit_group_b = st.container()
-
+            with placehold_container_dt_edit_group_b:
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    read_aloud_b = st.checkbox('Read aloud', value=True, key='read_aloud_b', disabled=True)
+                with col2:
+                    translate_b = st.checkbox('Translate', value=True, key='translate_b', disabled=True)
+                with col3:
+                    distill_b = st.checkbox('Distill', key='distill_b')
 
         if read_aloud_b and not translate_b and not distill_b:
-            dfb_destilled = placehold_container_dt_edit_group_b.data_editor(
+            dfb_distilled = placehold_container_dt_edit_group_b.data_editor(
                 dfb[['foreign_language']],
                 column_config=column_configuration,
                 use_container_width=True,
@@ -256,7 +272,7 @@ if len(notebooks_list) > 0:
                 key='dt_edit_group_b'
             )
         elif translate_b and not distill_b:
-            dfb_destilled = placehold_container_dt_edit_group_b.data_editor(
+            dfb_distilled = placehold_container_dt_edit_group_b.data_editor(
                 dfb[['foreign_language', 'translated_sentence']],
                 column_config=column_configuration,
                 use_container_width=True,
@@ -265,8 +281,12 @@ if len(notebooks_list) > 0:
                 disabled=['foreign_language', 'mother_tongue'],
                 key='dt_edit_group_b'
             )
+            btn_update_b = placehold_container_dt_edit_group_b.button('RECORD TRANSLATION', 
+                                                                      use_container_width=True, 
+                                                                      type='primary', 
+                                                                      key='btn_record_group_b')
         elif distill_b:
-            dfb_destilled = placehold_container_dt_edit_group_b.data_editor(
+            dfb_distilled = placehold_container_dt_edit_group_b.data_editor(
                 dfb[['remembered', 'foreign_language', 'translated_sentence', 'mother_tongue',]],
                 column_config=column_configuration,
                 use_container_width=True,
@@ -276,14 +296,49 @@ if len(notebooks_list) > 0:
                 key='dt_edit_group_b'
             )
         
+        if btn_update_b:
+            dfb_update = dfb_distilled.copy()
+            dfb_update['remembered'] = False
+            page_section_update_b: PageSection = build_page_section_with_sentence_list(dataframe=dfb_update,
+                                                        selected_day=page_section_group_b.created_at.date(), 
+                                                        notebook=notebook, 
+                                                        group=page_section_group_b.group,
+                                                        persit=False)
+            page_section_update_b.page_number = page_section_group_b.page_number
+            try:
+                page_section_dao.update(page_section_update_b)
+                st.toast('Sentence translation was updated!')
+            except Exception as error:
+                    placehold_container_msg.error(str(error), icon="🚨")                    
+
         if distill_b and not dfb.empty:
-            if placehold_container_dt_edit_group_b.button('DISTILLATION FINISH HEADLIST', use_container_width=True, type='primary', key='btn_group_a'):
+            if placehold_container_dt_edit_group_b.button('DISTILLATION FINISH GROUP B', 
+                                                           use_container_width=True, 
+                                                           type='primary', 
+                                                           key='btn_group_b',
+                                                           disabled=True if page_section_group_b.distillated \
+                                                                            else False):
                 try:
-                    dfb_destilled = dfb_destilled[dfb_destilled['remembered'] == False]
-                    page_section_after_b = build_page_section_with_sentence_list(dataframe=dfb_destilled,
+                    page_section_update_b: PageSection = build_page_section_with_sentence_list(dataframe=dfb_distilled,
+                                                          selected_day=page_section_group_b.created_at.date(), 
+                                                          notebook=notebook, 
+                                                          group=page_section_group_b.group,
+                                                          persit=False)
+                    page_section_update_b.page_number = page_section_group_b.page_number
+                    page_section_update_b.distillated = True
+                    page_section_dao.update(page_section_update_b)
+                    st.toast('Saving the distillation!')
+
+                    dfb_base = dfb_distilled[dfb_distilled['remembered'] == False].copy()
+                    dfb_base['translated_sentence'] = ''
+                    page_section_after_b = build_page_section_with_sentence_list(dataframe=dfb_base,
                                                           selected_day=selected_day, 
                                                           notebook=notebook, 
-                                                          group=Group.C)
+                                                          group=Group.C,
+                                                          persit=False)
+                    page_section_after_b.set_created_by(page_section_group_b)
+                    page_section_dao.insert(page_section_after_b)
+                    
                     placehold_data_edit_group_b.success(f'{page_section_after_b} was inserted success!')
                 except Exception as error:
                     placehold_container_msg.error(str(error), icon="🚨")
@@ -291,26 +346,27 @@ if len(notebooks_list) > 0:
                         st.error(str(error), icon="🚨")
 
         if dfb.empty:
-            placehold_data_edit_group_b.warning('⚠️There is no a list of expressions in "Group B" to distill on the selected day!')
+            placehold_data_edit_group_b.warning('⚠️There is no a list of expressions '
+                                                'in "Group B" to distill on the selected day!')
     
 
 
-
+##########################GroupC Section####################################
     with tab3:
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            read_aloud_c = st.checkbox('Read aloud', value=True, key='read_aloud_c', disabled=True)
-        with col2:
-            translate_c = st.checkbox('Translate', value=True, key='translate_c', disabled=True)
-        with col3:
-            distill_c = st.checkbox('Distill', key='distill_c')
-        
         placehold_data_edit_group_c = st.empty()
         with placehold_data_edit_group_c:
             placehold_container_dt_edit_group_c = st.container()
+            with placehold_container_dt_edit_group_c:
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    read_aloud_c = st.checkbox('Read aloud', value=True, key='read_aloud_c', disabled=True)
+                with col2:
+                    translate_c = st.checkbox('Translate', value=True, key='translate_c', disabled=True)
+                with col3:
+                    distill_c = st.checkbox('Distill', key='distill_c')
 
         if read_aloud_c and not translate_c and not distill_c:
-            dfc_destilled = placehold_container_dt_edit_group_c.data_editor(
+            dfc_distilled = placehold_container_dt_edit_group_c.data_editor(
                 dfc[['foreign_language']],
                 column_config=column_configuration,
                 use_container_width=True,
@@ -320,7 +376,7 @@ if len(notebooks_list) > 0:
                 key='dt_edit_group_c'
             )
         elif translate_c and not distill_c:
-            dfc_destilled = placehold_container_dt_edit_group_c.data_editor(
+            dfc_distilled = placehold_container_dt_edit_group_c.data_editor(
                 dfc[['foreign_language', 'translated_sentence']],
                 column_config=column_configuration,
                 use_container_width=True,
@@ -329,8 +385,12 @@ if len(notebooks_list) > 0:
                 disabled=['foreign_language', 'mother_tongue'],
                 key='dt_edit_group_c'
             )
+            btn_update_c = placehold_container_dt_edit_group_c.button('RECORD TRANSLATION', 
+                                                                      use_container_width=True, 
+                                                                      type='primary', 
+                                                                      key='btn_record_group_c')
         elif distill_c:
-            dfc_destilled = placehold_container_dt_edit_group_c.data_editor(
+            dfc_distilled = placehold_container_dt_edit_group_c.data_editor(
                 dfc[['remembered', 'foreign_language', 'translated_sentence', 'mother_tongue',]],
                 column_config=column_configuration,
                 use_container_width=True,
@@ -340,42 +400,78 @@ if len(notebooks_list) > 0:
                 key='dt_edit_group_c'
             )
         
+        if btn_update_c:
+            dfc_update = dfc_distilled.copy()
+            dfc_update['remembered'] = False
+            page_section_update_c: PageSection = build_page_section_with_sentence_list(dataframe=dfc_update,
+                                                        selected_day=page_section_group_c.created_at.date(), 
+                                                        notebook=notebook, 
+                                                        group=page_section_group_c.group,
+                                                        persit=False)
+            page_section_update_c.page_number = page_section_group_c.page_number
+            try:
+                page_section_dao.update(page_section_update_c)
+                st.toast('Sentence translation was updated!')
+            except Exception as error:
+                    placehold_container_msg.error(str(error), icon="🚨")                    
+
         if distill_c and not dfc.empty:
-            if placehold_container_dt_edit_group_c.button('DISTILLATION FINISH HEADLIST', use_container_width=True, type='primary', key='btn_group_a'):
+            if placehold_container_dt_edit_group_c.button('DISTILLATION FINISH GROUP C', 
+                                                           use_container_width=True, 
+                                                           type='primary', 
+                                                           key='btn_group_c',
+                                                           disabled=True if page_section_group_c.distillated \
+                                                                            else False):
                 try:
-                    dfc_destilled = dfc_destilled[dfc_destilled['remembered'] == False]
-                    print(len(dfc_destilled))
-                    page_section_after_c = build_page_section_with_sentence_list(dataframe=dfc_destilled,
+                    page_section_update_c: PageSection = build_page_section_with_sentence_list(dataframe=dfc_distilled,
+                                                          selected_day=page_section_group_c.created_at.date(), 
+                                                          notebook=notebook, 
+                                                          group=page_section_group_c.group,
+                                                          persit=False)
+                    page_section_update_c.page_number = page_section_group_c.page_number
+                    page_section_update_c.distillated = True
+                    page_section_dao.update(page_section_update_c)
+                    st.toast('Saving the distillation!')
+
+                    dfc_base = dfc_distilled[dfc_distilled['remembered'] == False].copy()
+                    dfc_base['translated_sentence'] = ''
+                    page_section_after_c = build_page_section_with_sentence_list(dataframe=dfc_base,
                                                           selected_day=selected_day, 
                                                           notebook=notebook, 
-                                                          group=Group.D)
-                    placehold_data_edit_group_c.success(f'{page_section_after_c} was inserted success!')
+                                                          group=Group.D,
+                                                          persit=False)
+                    page_section_after_c.set_created_by(page_section_group_c)
+                    page_section_dao.insert(page_section_after_c)
+                    
+                    placehold_data_edit_group_b.success(f'{page_section_after_c} was inserted success!')
                 except Exception as error:
                     placehold_container_msg.error(str(error), icon="🚨")
                     if 'There is already a page'.upper() in str(error).upper():
                         st.error(str(error), icon="🚨")
 
         if dfc.empty:
-            placehold_data_edit_group_c.warning('⚠️There is no a list of expressions in "Group C" to distill on the selected day!')
+            placehold_data_edit_group_c.warning('⚠️There is no a list of expressions '
+                                                'in "Group C" to distill on the selected day!')
     
 
     
-
+##########################GroupD Section####################################
     with tab4:
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            read_aloud_d = st.checkbox('Read aloud', value=True, key='read_aloud_d', disabled=True)
-        with col2:
-            translate_d = st.checkbox('Translate', value=True, key='translate_d', disabled=True)
-        with col3:
-            distill_d = st.checkbox('Distill', key='distill_d')
-        
         placehold_data_edit_group_d = st.empty()
         with placehold_data_edit_group_d:
             placehold_container_dt_edit_group_d = st.container()
+            with placehold_container_dt_edit_group_d:
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    read_aloud_d = st.checkbox('Read aloud', value=True, key='read_aloud_d', disabled=True)
+                with col2:
+                    translate_d = st.checkbox('Translate', value=True, key='translate_d', disabled=True)
+                with col3:
+                    distill_d = st.checkbox('Distill', key='distill_d')
+        
 
         if read_aloud_d and not translate_d and not distill_d:
-            dfd_destilled = placehold_container_dt_edit_group_d.data_editor(
+            dfd_distilled = placehold_container_dt_edit_group_d.data_editor(
                 dfd[['foreign_language']],
                 column_config=column_configuration,
                 use_container_width=True,
@@ -385,7 +481,7 @@ if len(notebooks_list) > 0:
                 key='dt_edit_group_d'
             )
         elif translate_d and not distill_d:
-            dfd_destilled = placehold_container_dt_edit_group_d.data_editor(
+            dfd_distilled = placehold_container_dt_edit_group_d.data_editor(
                 dfd[['foreign_language', 'translated_sentence']],
                 column_config=column_configuration,
                 use_container_width=True,
@@ -394,8 +490,12 @@ if len(notebooks_list) > 0:
                 disabled=['foreign_language', 'mother_tongue'],
                 key='dt_edit_group_d'
             )
+            btn_update_d = placehold_container_dt_edit_group_d.button('RECORD TRANSLATION GROUP D', 
+                                                                      use_container_width=True, 
+                                                                      type='primary', 
+                                                                      key='btn_record_group_d')
         elif distill_d:
-            dfd_destilled = placehold_container_dt_edit_group_d.data_editor(
+            dfd_distilled = placehold_container_dt_edit_group_d.data_editor(
                 dfd[['remembered', 'foreign_language', 'translated_sentence', 'mother_tongue',]],
                 column_config=column_configuration,
                 use_container_width=True,
@@ -405,16 +505,50 @@ if len(notebooks_list) > 0:
                 key='dt_edit_group_d'
             )
         
+        if btn_update_d:
+            dfd_update = dfd_distilled.copy()
+            dfd_update['remembered'] = False
+            page_section_update_d: PageSection = build_page_section_with_sentence_list(dataframe=dfd_update,
+                                                        selected_day=page_section_group_d.created_at.date(), 
+                                                        notebook=notebook, 
+                                                        group=page_section_group_d.group,
+                                                        persit=False)
+            page_section_update_d.page_number = page_section_group_d.page_number
+            try:
+                page_section_dao.update(page_section_update_d)
+                st.toast('Sentence translation was updated!')
+            except Exception as error:
+                    placehold_container_msg.error(str(error), icon="🚨")                    
+
         if distill_d and not dfd.empty:
-            if placehold_container_dt_edit_group_d.button('DISTILLATION FINISH HEADLIST', use_container_width=True, type='primary', key='btn_group_a'):
+            if placehold_container_dt_edit_group_d.button('DISTILLATION FINISH GROUP D', 
+                                                           use_container_width=True, 
+                                                           type='primary', 
+                                                           key='btn_group_d',
+                                                           disabled=True if page_section_group_d.distillated \
+                                                                            else False):
                 try:
-                    dfd_destilled = dfd_destilled[dfd_destilled['remembered'] == False]
-                    print(len(dfd_destilled))
-                    page_section_after_d = build_page_section_with_sentence_list(dataframe=dfd_destilled,
+                    page_section_update_d: PageSection = build_page_section_with_sentence_list(dataframe=dfd_distilled,
+                                                          selected_day=page_section_group_d.created_at.date(), 
+                                                          notebook=notebook, 
+                                                          group=page_section_group_d.group,
+                                                          persit=False)
+                    page_section_update_d.page_number = page_section_group_d.page_number
+                    page_section_update_d.distillated = True
+                    page_section_dao.update(page_section_update_d)
+                    st.toast('Saving the distillation!')
+
+                    dfc_base = dfd_distilled[dfd_distilled['remembered'] == False].copy()
+                    dfc_base['translated_sentence'] = ''
+                    page_section_after_d = build_page_section_with_sentence_list(dataframe=dfc_base,
                                                           selected_day=selected_day, 
                                                           notebook=notebook, 
-                                                          group=Group.NEW_PAGE)
-                    placehold_data_edit_group_d.success(f'{page_section_after_d} was inserted success!')
+                                                          group=Group.NEW_PAGE,
+                                                          persit=False)
+                    page_section_after_d.set_created_by(page_section_group_d)
+                    page_section_dao.insert(page_section_after_d)
+
+                    placehold_data_edit_group_b.success(f'{page_section_after_d} was inserted success!')
                 except Exception as error:
                     placehold_container_msg.error(str(error), icon="🚨")
                     if 'There is already a page'.upper() in str(error).upper():
