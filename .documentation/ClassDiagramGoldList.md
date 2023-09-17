@@ -9,8 +9,9 @@
             - foreign_language_idiom: String
             - mother_tongue_idiom: String
 
-            + getCalendar(): List<Date>
-            + createNewList(): PageSection
+            + data_to_dataframe(): HashMap %%teste
+            + get_page_section(): PageSection
+            + count_page_section_by_group(Group): Integer 
         }        
 
         class PageSection {
@@ -20,8 +21,9 @@
             - destilationAt: Date
             - translations: Array<String>
             - memorializeds: Array<Boolean>
-            + distilling(): void
-            + createNextList(): PageSection
+
+            + data_to_dataframe(): HashMap
+            + set_created_by(PageSection): void
         }
 
         class Sentence {
@@ -29,21 +31,23 @@
             - foreignLanguage: String
             - motherLanguage: String
             - foreignLanguageIdiom: String      
-            - motherLanguageIdiom: String      
+            - motherLanguageIdiom: String   
+
+            + data_to_dataframe(): HashMap
         }
 
         class Group {
             <<enumeration>>
-            HEADLIST
-            A
-            B
-            C
-            D
-            NEW_PAGE
+            HEADLIST = "A"
+            A        = "A"
+            B        = "B"
+            C        = "C"
+            D        = "D"
+            NEW_PAGE = "NP"
         }
     
-        Notebook "1" <--> "0..*" PageSection
-        PageSection "0..1" --> "1" PageSection: createdby
-        PageSection "0..*" --> "1..*" Sentence
-        PageSection "0..*" ..> "1" Group
+        Notebook "1"        <-->    "0..*" PageSection
+        PageSection "0..1"   -->    "1" PageSection: createdby
+        PageSection "0..*"   -->    "1..*" Sentence
+        PageSection "0..*"   ..>    "1" Group
 ```
