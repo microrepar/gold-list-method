@@ -39,6 +39,7 @@
             B
             C
             D
+            NEW_PAGE
         }
     
         Notebook "1" <--> "0..*" PageSection

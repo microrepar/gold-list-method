@@ -22,7 +22,7 @@ if not notebook_file.exists():
 
 
 page_section_file = Path(HERE).parent / 'data_base' / 'page_section.parquet'
-page_section_columns = ['id', 'page_number','created_at','group','distillation_at', 'destillated','memorized', 'translated_sentence', 'sentence_id', 'notebook_id']
+page_section_columns = ['id', 'page_number','created_at','group','distillation_at', 'distillated','memorized', 'translated_sentence', 'sentence_id', 'notebook_id']
 page_section_types = ['Int64', 'Int64', 'datetime64[ns]', str, 'datetime64[ns]', bool, bool, 'Int64', 'Int64' ]
 if not page_section_file.exists():
     df = pd.DataFrame(columns=page_section_columns)
@@ -103,7 +103,8 @@ class NotebookDAO(AbstractDAO):
             return None
 
         notebook = Notebook()
-        for index, row in df_result.iterrows():
+        for index, row in df_result.iterrows():            
+
             notebook.id = row['id']
             notebook.name = row['name']
             notebook.created_at = row['created_at']
@@ -151,8 +152,7 @@ class PageSectionDAO(AbstractDAO):
         check_page_section = PageSection(group=entity.group, 
                                          created_at=entity.created_at,
                                          notebook=entity.notebook)
-        page_section_result_list = self.find_by_field(check_page_section)
-        
+        page_section_result_list = self.find_by_field(check_page_section)        
         
         if len(page_section_result_list) > 0:
             raise Exception(f'There is already a page for the group {entity.group.value} and selected day {entity.created_at.strftime("%d/%m/%Y")}!')
@@ -168,6 +168,7 @@ class PageSectionDAO(AbstractDAO):
         df_concat.to_parquet(page_section_file)
 
         return entity
+    
 
     def get_all(self, entity: PageSection) -> List[PageSection]:
         pass
@@ -176,7 +177,29 @@ class PageSectionDAO(AbstractDAO):
         pass
 
     def update(self, entity: PageSection) -> bool:
-        pass
+        df = pd.read_parquet(page_section_file)
+
+        df_page = df[df['page_number'] == entity.page_number]
+
+        is_distillated = df_page['distillated'].tolist()[-1]
+
+        if is_distillated:
+            raise Exception(f'Changing PageSection "group {entity.group.value}" is not allowed because it has already been distilled.')
+
+        id_list = df_page['id'].tolist()
+
+        entity.set_id(min(id_list))
+
+        df.drop(df[df['page_number'] == entity.page_number].index, inplace=True)
+
+        # Registry new page_section into dataframe using pd.concat method 
+        df_registro = pd.DataFrame(entity.data_to_dataframe())
+        df_concat = pd.concat([df, df_registro], ignore_index=True)
+
+        df_concat.to_parquet(page_section_file)
+
+        return entity
+
 
     def find_by_field(self, entity: PageSection) -> List[PageSection]:
         df = pd.read_parquet(page_section_file)
@@ -197,7 +220,7 @@ class PageSectionDAO(AbstractDAO):
                 value = value.value            
             elif isinstance(value, datetime.date):
                 value = pd.to_datetime(value).strftime("%Y-%m-%d")
-            elif attr in 'page_number destillated':
+            elif attr in 'page_number distillated':
                 ...
             else:
                 raise Exception(f'This field "{attr}" cannot be used to find PageSection objects!')
@@ -214,9 +237,11 @@ class PageSectionDAO(AbstractDAO):
             sentence_id_list = []
             translated_sentence_list = []
             memorized_list = []
+            id_list = []
 
             df_page = df_result[df['page_number'] == page].copy()
             for index, row in df_page.iterrows():
+                id_list.append(row['id'])
                 sentence_id_list.append(row['sentence_id'])
                 translated_sentence_list.append(row['translated_sentence'])
                 memorized_list.append(row['memorized'])
@@ -234,11 +259,12 @@ class PageSectionDAO(AbstractDAO):
                 )
 
                 page_section_list.append(
-                    PageSection(page_number=row['page_number'],
+                    PageSection(id_=min(id_list),
+                                page_number=row['page_number'],
                                 created_at=row['created_at'],
                                 group=Group(row['group']),
                                 distillation_at=row['distillation_at'],
-                                destillated=row['destillated'],
+                                distillated=row['distillated'],
                                 memorializeds=memorized_list,
                                 translated_sentences=translated_sentence_list,
                                 sentences=sentences,

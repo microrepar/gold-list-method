@@ -4,7 +4,7 @@ from app.core.dao_parquet import PageSectionDAO, SentenceDAO
 from app.model import Group, PageSection, Sentence
 
 
-def build_page_section_with_sentence_list(*, dataframe, selected_day, notebook, group: Group):
+def build_page_section_with_sentence_list(*, dataframe, selected_day, notebook, group: Group, persit=True):
     sentence_dao = SentenceDAO()
     page_section_dao = PageSectionDAO()
 
@@ -52,8 +52,9 @@ def build_page_section_with_sentence_list(*, dataframe, selected_day, notebook, 
         translated_sentences=translated_list
     )
 
-    page_section_result = page_section_dao.insert(page_section)
-    
-    return page_section_result
+    if persit:
+        page_section_result = page_section_dao.insert(page_section)
+        return page_section_result
+    return page_section
     
     
