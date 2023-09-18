@@ -36,7 +36,7 @@ def build_page_section_with_sentence_list(*,
         else:
             sentence = sentence_dao.insert(
                 Sentence(
-                    created_at=datetime.datetime.strptime(str(selected_day), '%Y-%m-%d'),
+                    created_at=datetime.datetime.strptime(str(selected_day), '%Y-%m-%d').date(),
                     foreign_language=row['foreign_language'], 
                     mother_tongue=row['mother_tongue'], 
                     foreign_idiom=notebook.foreign_idiom, 
@@ -49,10 +49,10 @@ def build_page_section_with_sentence_list(*,
 
     page_section = PageSection(
         group=group,
-        created_at=datetime.datetime.strptime(str(selected_day), '%Y-%m-%d'),
-        distillation_at=datetime.datetime.strptime(str(selected_day), '%Y-%m-%d') + datetime.timedelta(days=15),
-        sentences=sentence_list, 
+        created_at=datetime.datetime.strptime(str(selected_day), '%Y-%m-%d').date(),
+        distillation_at=(datetime.datetime.strptime(str(selected_day), '%Y-%m-%d') + datetime.timedelta(days=15)).date(),
         notebook=notebook,
+        sentences=sentence_list, 
         memorializeds=memorized_list,
         translated_sentences=translated_list
     )

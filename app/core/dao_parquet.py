@@ -22,8 +22,8 @@ if not notebook_file.exists():
 
 
 page_section_file = Path(HERE).parent / 'data_base' / 'page_section.parquet'
-page_section_columns = ['id', 'page_number','created_at', 'created_by_id','group','distillation_at', 'distillated','memorized', 'translated_sentence', 'sentence_id', 'notebook_id']
-page_section_types = ['Int64', 'Int64', 'datetime64[ns]', 'datetime64[ns]', str, 'datetime64[ns]', bool, bool, 'Int64', 'Int64' ]
+page_section_columns = ['id', 'page_number','created_at', 'created_by_id','group','distillation_at', 'distillation_actual', 'distillated','memorized', 'translated_sentence', 'sentence_id', 'notebook_id']
+page_section_types = ['Int64', 'Int64', 'datetime64[ns]', 'datetime64[ns]', str, 'datetime64[ns]', 'datetime64[ns]', bool, bool, 'Int64', 'Int64' ]
 if not page_section_file.exists():
     df = pd.DataFrame(columns=page_section_columns)
     df = df.astype(dict(zip(page_section_columns, page_section_types)))
@@ -212,6 +212,7 @@ class PageSectionDAO(AbstractDAO):
                 created_at           = row['created_at'],                    
                 group                = Group(row['group']),
                 distillation_at      = row['distillation_at'],
+                distillation_actual   = row['distillation_actual'],
                 distillated          = row['distillated'],
                 memorializeds        = memorized_list,
                 translated_sentences = translated_sentence_list,
@@ -317,6 +318,7 @@ class PageSectionDAO(AbstractDAO):
                         created_by           = created_by,
                         group                = Group(row['group']),
                         distillation_at      = row['distillation_at'],
+                        distillation_actual   = row['distillation_actual'],
                         distillated          = row['distillated'],
                         memorializeds        = memorized_list,
                         translated_sentences = translated_sentence_list,

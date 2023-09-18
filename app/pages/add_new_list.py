@@ -110,16 +110,16 @@ if len(notebooks_list) > 0:
 
     notebook = notebook_dict.get(selected_notebook)
 
-    col_group_1.markdown(f'Group A: {notebook.count_page_section_by_group(group=Group.A):0>6}')
-    col_group_2.markdown(f'Group B: {notebook.count_page_section_by_group(group=Group.B):0>6}')
-    col_group_3.markdown(f'Group C: {notebook.count_page_section_by_group(group=Group.C):0>6}')
-    col_group_4.markdown(f'Group D: {notebook.count_page_section_by_group(group=Group.D):0>6}')
+    col_group_1.markdown(f'**GroupA:** {notebook.count_page_section_by_group(group=Group.A):0>7}')
+    col_group_2.markdown(f'**GroupB:** {notebook.count_page_section_by_group(group=Group.B):0>7}')
+    col_group_3.markdown(f'**GroupC:** {notebook.count_page_section_by_group(group=Group.C):0>7}')
+    col_group_4.markdown(f'**GroupD:** {notebook.count_page_section_by_group(group=Group.D):0>7}')
 
 else:
     st.warning('⚠️Attention! There are no notebooks registred!')
     st.markdown('[Create a Notebook](Add%20New%20Notebook)')
 
-
+st.divider()
 
 # The directory containing this file
 import os.path
@@ -130,6 +130,7 @@ page_section_file = Path(HERE).parent / 'data_base' / 'page_section.parquet'
 df_page = pd.read_parquet(page_section_file)
 df_sentence = pd.read_parquet(sentence_file)
 st.markdown('PAGE SECTIONS')
-st.dataframe(df_page)
+st.dataframe(df_page, hide_index=True, use_container_width=True)
+st.divider()
 st.markdown('SENTENCES')
-st.dataframe(df_sentence)
+st.dataframe(df_sentence, hide_index=True, use_container_width=True)

@@ -49,7 +49,7 @@ class Notebook:
     
     def get_page_section(self, *, distillation_at, group) -> 'PageSection':
         for page_section in self.page_section_list:
-            if distillation_at == page_section.distillation_at.date() \
+            if distillation_at == page_section.distillation_at \
                     and group == page_section.group:
                 return page_section
     
@@ -117,7 +117,8 @@ class PageSection:
                  created_at           : 'Date'=None,
                  created_by           : int=None,
                  distillation_at      : 'Date'=None,
-                 distillated          : bool=None,
+                 distillation_actual  : 'Date'=None,
+                 distillated          : bool=False,
                  sentences            : List[Sentence]=[],
                  translated_sentences : List[str]=[],
                  memorializeds        : List[bool]=[],
@@ -127,12 +128,23 @@ class PageSection:
         self.group:Group          = group
         self.created_at           = created_at
         self.distillation_at      = distillation_at
-        self.distillated          = distillated
+        self._distillated         = distillated
         self.sentences            = sentences
         self.translated_sentences = translated_sentences
         self.memorializeds        = memorializeds
         self.notebook             = notebook
+        self._distillation_actual: 'Date' = distillation_actual
         self.set_created_by(created_by)        # page_number from  PageSection
+    
+    @property
+    def distillated(self):
+        return bool(self._distillated)
+
+    @distillated.setter
+    def distillated(self, value: bool) :
+        self._distillated = bool(value)
+        if value:
+            self._distillation_actual = datetime.datetime.now().date()
 
     def set_id(self, id_):
         self.id = id_
@@ -175,7 +187,8 @@ class PageSection:
             'created_at'          : [self.created_at for _ in range(len(self.sentences))],
             'created_by_id'       : [created_by for _ in range(len(self.sentences))],
             'distillation_at'     : [self.distillation_at for _ in range(len(self.sentences))],
-            'distillated'         : [self.distillated for _ in range(len(self.sentences))],
+            'distillation_actual'  : [self._distillation_actual for _ in range(len(self.sentences))],
+            'distillated'         : [self._distillated for _ in range(len(self.sentences))],
             'notebook_id'         : [self.notebook.id for _ in range(len(self.sentences))],
             'sentence_id'         : [v.id for v in self.sentences],
             'translated_sentence' : [v for v in self.translated_sentences],
