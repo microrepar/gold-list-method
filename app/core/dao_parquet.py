@@ -60,7 +60,7 @@ class NotebookDAO(AbstractDAO):
         entity.id = new_id
 
         # Registry new notebook into dataframe using pd.concat method 
-        df_registro = pd.DataFrame(entity.data_to_dataframe())
+        df_registro = pd.DataFrame(self._data_to_dataframe(entity))
         df_concat = pd.concat([df, df_registro], ignore_index=True)
 
         df_concat.to_parquet(notebook_file)
@@ -92,7 +92,6 @@ class NotebookDAO(AbstractDAO):
             )
 
         return notebook_list
-
 
     def get_by_id(self, entity: Notebook) -> Notebook:
         df = pd.read_parquet(notebook_file)
@@ -128,6 +127,19 @@ class NotebookDAO(AbstractDAO):
     def delete(self, entity: Notebook) -> bool:
         pass
 
+    def _data_to_dataframe(self, notebook: Notebook):
+        return [
+            {
+                'id'            : notebook.id,
+                'name'          : notebook.name,
+                'created_at'    : notebook.created_at,
+                'updated_at'    : notebook.updated_at,
+                'list_size'     : notebook.list_size,
+                'foreign_idiom' : notebook.foreign_idiom,
+                'mother_idiom'  : notebook.mother_idiom,
+            }
+        ]
+
 
 
 class PageSectionDAO(AbstractDAO):
@@ -162,7 +174,7 @@ class PageSectionDAO(AbstractDAO):
         entity.set_id(new_id)
 
         # Registry new page_section into dataframe using pd.concat method 
-        df_registro = pd.DataFrame(entity.data_to_dataframe())
+        df_registro = pd.DataFrame(self._data_to_dataframe(entity))
         df_concat = pd.concat([df, df_registro], ignore_index=True)
 
         df_concat.to_parquet(page_section_file)
@@ -238,7 +250,7 @@ class PageSectionDAO(AbstractDAO):
         df.drop(df[df['page_number'] == entity.page_number].index, inplace=True)
 
         # Registry new page_section into dataframe using pd.concat method 
-        df_registro = pd.DataFrame(entity.data_to_dataframe())
+        df_registro = pd.DataFrame(self._data_to_dataframe(entity))
         df_concat = pd.concat([df, df_registro], ignore_index=True)
 
         df_concat.to_parquet(page_section_file)
@@ -333,6 +345,25 @@ class PageSectionDAO(AbstractDAO):
     def delete(self, entity: PageSection) -> bool:
         pass
 
+    def _data_to_dataframe(self, page_section: PageSection):
+        created_by = None
+        if page_section.created_by is not None:
+            created_by = page_section.created_by.page_number
+        return {    
+            'id'                  : [i for i in range(page_section.id, page_section.id + len(page_section.sentences))],
+            'page_number'         : [page_section.page_number for _ in range(len(page_section.sentences))],
+            'group'               : [page_section.group.value for _ in range(len(page_section.sentences))],
+            'created_at'          : [page_section.created_at for _ in range(len(page_section.sentences))],
+            'created_by_id'       : [created_by for _ in range(len(page_section.sentences))],
+            'distillation_at'     : [page_section.distillation_at for _ in range(len(page_section.sentences))],
+            'distillation_actual' : [page_section._distillation_actual for _ in range(len(page_section.sentences))],
+            'distillated'         : [page_section._distillated for _ in range(len(page_section.sentences))],
+            'notebook_id'         : [page_section.notebook.id for _ in range(len(page_section.sentences))],
+            'sentence_id'         : [v.id for v in page_section.sentences],
+            'translated_sentence' : [v for v in page_section.translated_sentences],
+            'memorized'           : [v for v in page_section.memorializeds],
+        }
+
 
 
 class SentenceDAO(AbstractDAO):
@@ -351,7 +382,7 @@ class SentenceDAO(AbstractDAO):
         entity.id = new_id
 
         # Registry new sentence into dataframe using pd.concat method 
-        df_registro = pd.DataFrame(entity.data_to_dataframe())
+        df_registro = pd.DataFrame(self._data_to_dataframe(entity))
         df_concat = pd.concat([df, df_registro], ignore_index=True)
 
         df_concat.to_parquet(sentence_file)
@@ -423,5 +454,17 @@ class SentenceDAO(AbstractDAO):
 
     def delete(self, entity: Sentence) -> bool:
         pass
+
+    def _data_to_dataframe(self, sentence: Sentence):
+        return [
+            {
+                'id'               : sentence.id,
+                'created_at'       : sentence.created_at,
+                'foreign_language' : sentence.foreign_language,
+                'mother_tongue'    : sentence.mother_tongue,
+                'foreign_idiom'    : sentence.foreign_idiom,
+                'mother_idiom'     : sentence.mother_idiom,
+            }
+        ]
 
 

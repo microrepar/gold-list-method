@@ -9,7 +9,6 @@
             - foreign_language_idiom: String
             - mother_tongue_idiom: String
 
-            + data_to_dataframe(): HashMap %%teste
             + get_page_section(): PageSection
             + count_page_section_by_group(Group): Integer 
         }        
@@ -22,7 +21,6 @@
             - translations: Array<String>
             - memorializeds: Array<Boolean>
 
-            + data_to_dataframe(): HashMap
             + set_created_by(PageSection): void
         }
 
@@ -32,8 +30,6 @@
             - motherLanguage: String
             - foreignLanguageIdiom: String      
             - motherLanguageIdiom: String   
-
-            + data_to_dataframe(): HashMap
         }
 
         class Group {

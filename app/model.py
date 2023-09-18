@@ -23,18 +23,18 @@ class Notebook:
         self.foreign_idiom     = foreign_idiom
         self.mother_idiom      = mother_idiom
 
-    def data_to_dataframe(self):
-        return [
-            {
-                'id'            : self.id,
-                'name'          : self.name,
-                'created_at'    : self.created_at,
-                'updated_at'    : self.updated_at,
-                'list_size'     : self.list_size,
-                'foreign_idiom' : self.foreign_idiom,
-                'mother_idiom'  : self.mother_idiom,
-            }
-        ]
+    # def data_to_dataframe(self):
+    #     return [
+    #         {
+    #             'id'            : self.id,
+    #             'name'          : self.name,
+    #             'created_at'    : self.created_at,
+    #             'updated_at'    : self.updated_at,
+    #             'list_size'     : self.list_size,
+    #             'foreign_idiom' : self.foreign_idiom,
+    #             'mother_idiom'  : self.mother_idiom,
+    #         }
+    #     ]
     
     def __str__(self) -> str:
         return (f'{self.__class__.__name__}'
@@ -77,17 +77,17 @@ class Sentence:
         self.foreign_idiom    = foreign_idiom
         self.mother_idiom     = mother_idiom
     
-    def data_to_dataframe(self):
-        return [
-            {
-                'id'               : self.id,
-                'created_at'       : self.created_at,
-                'foreign_language' : self.foreign_language,
-                'mother_tongue'    : self.mother_tongue,
-                'foreign_idiom'    : self.foreign_idiom,
-                'mother_idiom'     : self.mother_idiom,
-            }
-        ]
+    # def data_to_dataframe(self):
+    #     return [
+    #         {
+    #             'id'               : self.id,
+    #             'created_at'       : self.created_at,
+    #             'foreign_language' : self.foreign_language,
+    #             'mother_tongue'    : self.mother_tongue,
+    #             'foreign_idiom'    : self.foreign_idiom,
+    #             'mother_idiom'     : self.mother_idiom,
+    #         }
+    #     ]
     
     def __str__(self):
         return (
@@ -176,21 +176,21 @@ class PageSection:
                 ')'
         )
     
-    def data_to_dataframe(self):
-        created_by = None
-        if self.created_by is not None:
-            created_by = self.created_by.page_number
-        return {    
-            'id'                  : [i for i in range(self.id, self.id + len(self.sentences))],
-            'page_number'         : [self.page_number for _ in range(len(self.sentences))],
-            'group'               : [self.group.value for _ in range(len(self.sentences))],
-            'created_at'          : [self.created_at for _ in range(len(self.sentences))],
-            'created_by_id'       : [created_by for _ in range(len(self.sentences))],
-            'distillation_at'     : [self.distillation_at for _ in range(len(self.sentences))],
-            'distillation_actual'  : [self._distillation_actual for _ in range(len(self.sentences))],
-            'distillated'         : [self._distillated for _ in range(len(self.sentences))],
-            'notebook_id'         : [self.notebook.id for _ in range(len(self.sentences))],
-            'sentence_id'         : [v.id for v in self.sentences],
-            'translated_sentence' : [v for v in self.translated_sentences],
-            'memorized'           : [v for v in self.memorializeds],
-        }
+    # def data_to_dataframe(self):
+    #     created_by = None
+    #     if self.created_by is not None:
+    #         created_by = self.created_by.page_number
+    #     return {    
+    #         'id'                  : [i for i in range(self.id, self.id + len(self.sentences))],
+    #         'page_number'         : [self.page_number for _ in range(len(self.sentences))],
+    #         'group'               : [self.group.value for _ in range(len(self.sentences))],
+    #         'created_at'          : [self.created_at for _ in range(len(self.sentences))],
+    #         'created_by_id'       : [created_by for _ in range(len(self.sentences))],
+    #         'distillation_at'     : [self.distillation_at for _ in range(len(self.sentences))],
+    #         'distillation_actual'  : [self._distillation_actual for _ in range(len(self.sentences))],
+    #         'distillated'         : [self._distillated for _ in range(len(self.sentences))],
+    #         'notebook_id'         : [self.notebook.id for _ in range(len(self.sentences))],
+    #         'sentence_id'         : [v.id for v in self.sentences],
+    #         'translated_sentence' : [v for v in self.translated_sentences],
+    #         'memorized'           : [v for v in self.memorializeds],
+    #     }
