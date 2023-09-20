@@ -50,7 +50,7 @@ def build_page_section_with_sentence_list(*,
     page_section = PageSection(
         group=group,
         created_at=datetime.datetime.strptime(str(selected_day), '%Y-%m-%d').date(),
-        distillation_at=(datetime.datetime.strptime(str(selected_day), '%Y-%m-%d') + datetime.timedelta(days=15)).date(),
+        distillation_at=(datetime.datetime.strptime(str(selected_day), '%Y-%m-%d') + datetime.timedelta(days=notebook.day_range)).date(),
         notebook=notebook,
         sentences=sentence_list, 
         memorializeds=memorized_list,

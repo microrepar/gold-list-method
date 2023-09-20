@@ -6,7 +6,7 @@ import streamlit as st
 from st_pages import add_page_title
 
 from app.core.dao_parquet import NotebookDAO, PageSectionDAO, SentenceDAO
-from app.core.servico import build_page_section_with_sentence_list
+from app.core.service import build_page_section_with_sentence_list
 from app.model import Group, Notebook, PageSection, Sentence
 
 st.set_page_config(layout='wide')
@@ -27,13 +27,16 @@ notebook_dict = {n.name: n for n in notebooks_list}
 if len(notebooks_list) > 0:
     selected_notebook = st.sidebar.selectbox('**NOTEBOOK:**', [n.name for n in notebooks_list])
     notebook: Notebook = notebook_dict.get(selected_notebook)
-
+    
     st.title(f'NOTEBOOK - {notebook.name.upper()}')
     col_group_1, col_group_2, col_group_3, col_group_4 = st.sidebar.columns(4)
 
     st.sidebar.divider()
 
     selected_day = st.sidebar.date_input('**LIST OF THE DAY:**', datetime.datetime.now().date(), format='DD/MM/YYYY')
+    
+    page_section_dict = {p.created_at: p for p in notebook.page_section_list}
+    selected_page_section_day = page_section_dict.get(selected_day)
 
     new_data_add = []
     for i in range(1, notebook.list_size + 1 ):
@@ -67,7 +70,7 @@ if len(notebooks_list) > 0:
         ),
     }
 
-    st.markdown('**Add new list of sentences**')
+    st.markdown('**Add new HeadList**')
 
     placehold_sentences_sheet = st.empty()
     placehold_btn_insert = st.empty()
@@ -84,20 +87,31 @@ if len(notebooks_list) > 0:
     df_result['remembered'] = False
     df_result['translated_sentence'] = ''
 
-
-    if placehold_btn_insert.button('INSERT NEW LIST', type='primary', use_container_width=True):
-
+    if selected_page_section_day is not None:
+        placehold_sentences_sheet.warning(f'⚠️There is already a page for the group {selected_page_section_day.group.value} and selected day {selected_page_section_day.created_at}!')
+        
+    if placehold_btn_insert.button('INSERT NEW LIST', 
+                                   type='primary', 
+                                   disabled=False if selected_page_section_day is None else True, 
+                                   use_container_width=True):
         try:
             page_section = build_page_section_with_sentence_list(dataframe=df_result,
                                                                 selected_day=selected_day,
                                                                 notebook=notebook,
                                                                 group=Group.HEADLIST,
-                                                                persit=False)
+                                                                persit=False)            
             page_section_dao.insert(page_section)
+            placehold_sentences_sheet.success(f'{page_section} was inserted successfully!')
 
-            placehold_sentences_sheet.success(f'{page_section} was inserted with success!')
-            st.toast('Page section was inserted success.')
+            page_section.created_at = None
+            page_section.distillation_at = datetime.datetime.strptime(str(selected_day), '%Y-%m-%d').date()
+            page_section.distillated = True
+
+            page_section_dao.insert(page_section)
+        
+            st.toast('Page section was inserted successfully.')
             placehold_btn_insert.empty()
+            
         except Exception as error:
             st.toast('Something went wrong!')
             placehold_container_msg.error(str(error), icon="🚨")
@@ -120,17 +134,16 @@ else:
     st.markdown('[Create a Notebook](Add%20New%20Notebook)')
 
 st.divider()
-
-# The directory containing this file
-import os.path
-from pathlib import Path
-HERE = os.path.abspath(os.path.dirname(__file__))
-sentence_file = Path(HERE).parent / 'data_base' / 'sentence.parquet'
-page_section_file = Path(HERE).parent / 'data_base' / 'page_section.parquet'
-df_page = pd.read_parquet(page_section_file)
-df_sentence = pd.read_parquet(sentence_file)
-st.markdown('PAGE SECTIONS')
-st.dataframe(df_page, hide_index=True, use_container_width=True)
-st.divider()
-st.markdown('SENTENCES')
-st.dataframe(df_sentence, hide_index=True, use_container_width=True)
+# # The directory containing this file
+# import os.path
+# from pathlib import Path
+# HERE = os.path.abspath(os.path.dirname(__file__))
+# sentence_file = Path(HERE).parent / 'data_base' / 'sentence.parquet'
+# page_section_file = Path(HERE).parent / 'data_base' / 'page_section.parquet'
+# df_page = pd.read_parquet(page_section_file)
+# df_sentence = pd.read_parquet(sentence_file)
+# st.markdown('PAGE SECTIONS')
+# st.dataframe(df_page, hide_index=True, use_container_width=True)
+# st.divider()
+# st.markdown('SENTENCES')
+# st.dataframe(df_sentence, hide_index=True, use_container_width=True)

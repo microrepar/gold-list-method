@@ -23,7 +23,7 @@ class AbstractDAO(abc.ABC):
         """
     
     @abc.abstractmethod
-    def update(self, entity) -> bool:
+    def update(self, entity) -> 'entity':
         """Get entity as a parameter to be updated
         """
         
