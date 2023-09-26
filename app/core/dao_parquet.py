@@ -12,7 +12,7 @@ from app.model import Group, Notebook, PageSection, Sentence
 HERE = os.path.abspath(os.path.dirname(__file__))
 
 notebook_file = Path(HERE).parent / 'data_base' / 'notebook.parquet'
-notebook_columns = ['id', 'name', 'created_at', 'updated_at', 'list_size', 'day_range', 'foreign_idiom', 'mother_idiom']
+notebook_columns = ['id', 'name', 'created_at', 'updated_at', 'list_size', 'days_period', 'foreign_idiom', 'mother_idiom']
 notebook_types = ['int64', str, 'datetime64[ns]', 'datetime64[ns]', 'Int64', 'Int64', str, str]
 if not notebook_file.exists():
     df = pd.DataFrame(columns=notebook_columns)
@@ -85,7 +85,7 @@ class NotebookDAO(AbstractDAO):
                          created_at=row['created_at'],
                          updated_at=row['updated_at'],
                          list_size=row['list_size'],
-                         day_range=row['day_range'],
+                         days_period=row['days_period'],
                          foreign_idiom=row['foreign_idiom'],
                          mother_idiom=row['mother_idiom'],
                          page_section_list=page_section_list
@@ -110,7 +110,7 @@ class NotebookDAO(AbstractDAO):
             notebook.created_at = row['created_at']
             notebook.updated_at = row['updated_at']
             notebook.list_size = row['list_size']
-            notebook.day_range = row['day_range']
+            notebook.days_period = row['days_period']
             notebook.foreign_idiom = row['foreign_idiom']
             notebook.mother_idiom = row['mother_idiom']
             
@@ -150,9 +150,11 @@ class PageSectionDAO(AbstractDAO):
         if df.empty:
             next_section_number = 1
             next_id = 1
+            next_page = 1
         else:
             next_section_number = df['section_number'].max() + 1
             next_id = df['id'].max() + 1
+            next_page = df[df['notebook_id'] == entity.notebook.id]['page_number'].max() + 1
         
         if not next_section_number:
             next_section_number = 1
@@ -160,13 +162,16 @@ class PageSectionDAO(AbstractDAO):
         if not next_id:
             next_id = 1
 
+        next_page = entity.page_number if entity.page_number is not None else next_page
+    
+
         # Add maximum id that exist in the page_section dataframe plus 1 into page_section object id 
         page_section = PageSection()
         page_section.set_id(next_id)
+        page_section.page_number = next_page
         page_section.section_number = next_section_number
 
         page_section.created_by = entity.created_by
-        page_section.page_number = entity.page_number
         page_section.group = entity.group
         page_section.created_at = entity.created_at
         page_section.distillation_at = entity.distillation_at
@@ -188,6 +193,7 @@ class PageSectionDAO(AbstractDAO):
     def get_all(self, entity: PageSection) -> List[PageSection]:
         pass
 
+    
     def get_by_id(self, entity: PageSection) -> PageSection:
         df = pd.read_parquet(page_section_file)
 
@@ -236,6 +242,7 @@ class PageSectionDAO(AbstractDAO):
             )
             return page_section
 
+    
     def update(self, entity: PageSection) -> PageSection:
         df = pd.read_parquet(page_section_file)
 
@@ -271,7 +278,7 @@ class PageSectionDAO(AbstractDAO):
         
         filters = dict([v for v in vars(entity).items() if not v[0].startswith('_') and bool(v[-1])])
         for attr, value in filters.items():
-            if bool(value) is False: continue
+            if not bool(value): continue
 
             if isinstance(value, Notebook):
                 attr = 'notebook_id'

@@ -24,8 +24,9 @@ with st.form("my_form"):
     col1, col2 = st.columns(2)
     foreign_idiom = col1.text_input('Foreign idiom')
     mother_idiom = col2.text_input('Mother idiom')
+    col1, col2 = st.columns(2)
     list_size = col1.slider("List size", min_value=10, max_value=25, value=20)
-    day_range = col2.slider("Day range", min_value=5, max_value=20, value=15)
+    days_period = col2.slider("Days period", min_value=5, max_value=20, value=15)
 
     # Every form must have a submit button.
     submitted = st.form_submit_button("ADD NEW NOTEBOOK", type="primary", use_container_width=True)
@@ -34,20 +35,24 @@ with st.form("my_form"):
         notebook = Notebook(notebook_name.strip(), 
                             created_at=datetime.datetime.now().date(),
                             list_size=list_size,
-                            day_range=day_range,
+                            days_period=days_period,
                             foreign_idiom=foreign_idiom, 
                             mother_idiom=mother_idiom)        
         try:
             new_notebook = notebook_dao.insert(notebook)
             placehold_error_msg.success(f'{new_notebook} was inserted successfully!')
+            st.toast('Notebook was inserted successfully.')
         except Exception as error:
             placehold_error_msg.error(str(error), icon="🚨")           
+            st.toast('Something went wrong!')
+            st.error(str(error), icon="🚨")           
     elif submitted:
-        placehold_error_msg.error('The name field must be value valid!', icon="🚨")
+        placehold_error_msg.error('The name field must be valid value!', icon="🚨")
 
 
-# notebook_list = notebook_dao.get_all(Notebook())
-# if notebook_list:
-#     df = pd.concat([pd.DataFrame(n.data_to_dataframe()) for n in notebook_list], ignore_index=True)
-#     st.subheader('Notebooks')
-#     st.dataframe(df, hide_index=True, use_container_width=True)
+notebook_list = notebook_dao.get_all(Notebook())
+if notebook_list:
+    df = pd.concat([pd.DataFrame(n.data_to_dataframe()) for n in notebook_list], ignore_index=True)
+    st.subheader('Notebooks')
+    st.dataframe(df, hide_index=True, use_container_width=True)
+

@@ -1,3 +1,4 @@
 data_base/
 *__pycache__*
 .vscode/
+secrets.toml

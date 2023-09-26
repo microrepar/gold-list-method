@@ -15,23 +15,35 @@ placehold_container_msg.empty()
 
 add_page_title()  # Optional method to add title and icon to current page
 
-sentences_dao = SentenceDAO
+sentences_dao = SentenceDAO()
 page_section_dao = PageSectionDAO()
 notebook_dao = NotebookDAO()
-notebooks_list = notebook_dao.get_all()
+
+if 'notebook_list' not in st.session_state:
+    st.session_state.notebook_list = notebook_dao.get_all()
+
+def on_change_session_state_notebook_list():
+    st.session_state.notebook_list = notebook_dao.get_all()
+    st.experimental_rerun()
+
+notebooks_list = st.session_state.notebook_list
+
 notebook_dict = {n.name: n for n in notebooks_list}
 
 if len(notebooks_list) > 0:
     selected_notebook = st.sidebar.selectbox('**NOTEBOOK:**', 
                                              [n.name for n in notebooks_list],
-                                             key='select_notebook')
+                                             key='select_notebook',
+                                             on_change=on_change_session_state_notebook_list)
 
     notebook: Notebook = notebook_dict.get(selected_notebook)
+    if notebook.count_page_section_by_group(group=Group.A) == 0 \
+            and len(notebook.page_section_list) > 1:
+        on_change_session_state_notebook_list()
 
     st.title(f'NOTEBOOK - {notebook.name.upper()}')
 
-    col_group_1, col_group_2, col_group_3, col_group_4 = st.sidebar.columns(4
-                                                                            )
+    col_group_1, col_group_2, col_group_3, col_group_4 = st.sidebar.columns(4)
     st.sidebar.markdown("[Add New Headlist](Add%20New%20HeadList)")
 
     st.sidebar.divider()
@@ -141,7 +153,7 @@ if len(notebooks_list) > 0:
         with placehold_data_edit_headlist:
             placehold_container_dt_edit_headlist = st.container()
             with placehold_container_dt_edit_headlist:
-                col1, col2, col3 = st.columns(3)
+                col1, col2, col3, col4 = st.columns(4)
                 with col1:
                     read_aloud_a = st.checkbox('Read aloud', value=True, 
                                                key='read_aloud_a', disabled=True)
@@ -154,6 +166,7 @@ if len(notebooks_list) > 0:
                                                 and page_section_group_a.distillated else False,
                                             disabled=True if page_section_group_a \
                                                 and page_section_group_a.distillated else False)
+                col4.markdown(f'Date: {selected_day}')
         if not dfa.empty:
         
             if read_aloud_a and not translate_a and not distill_a:
@@ -177,9 +190,9 @@ if len(notebooks_list) > 0:
                         else ['translated_sentence', 'foreign_language'],
                     key='dt_edit_group_a'
                 )
-                btn_update_a = placehold_container_dt_edit_headlist.button('RECORD TRANSLATION', 
+                btn_update_a = placehold_container_dt_edit_headlist.button('RECORD HEADLIST TRANSLATION', 
                                                                         use_container_width=True, 
-                                                                        type='primary', 
+                                                                        type='secondary', 
                                                                         key='btn_record_group_a')
             
             elif distill_a and not page_section_group_a.distillated:
@@ -209,6 +222,7 @@ if len(notebooks_list) > 0:
                                                             notebook=notebook, 
                                                             group=page_section_group_a.group,
                                                             persit=False)
+                page_section_group_a.translated_sentences  = page_section_update_a.translated_sentences
                 page_section_update_a.section_number = page_section_group_a.section_number
                 try:
                     page_section_dao.update(page_section_update_a)
@@ -217,7 +231,7 @@ if len(notebooks_list) > 0:
                         placehold_container_msg.error(str(error), icon="🚨")
 
             if distill_a:
-                if placehold_container_dt_edit_headlist.button('HEADLIST FINISH DISTILLATION', 
+                if placehold_container_dt_edit_headlist.button('HEADLIST DISTILLATION FINISH', 
                                                             use_container_width=True, 
                                                             type='primary', 
                                                             key='btn_group_a',
@@ -242,10 +256,11 @@ if len(notebooks_list) > 0:
                                                             group=Group.B,
                                                             persit=False)
                         page_section_after_a.set_created_by(page_section_group_a)
-                        page_section_dao.insert(page_section_after_a)
+                        page_section_after_a = page_section_dao.insert(page_section_after_a)
                         
                         st.toast('Distillation was saved!')
                         placehold_data_edit_headlist.success(f'{page_section_after_a} was inserted successfully!')
+                        notebook.page_section_list.append(page_section_after_a)
                     except Exception as error:
                         placehold_container_msg.error(str(error), icon="🚨")
                         st.toast('Something went wrong!')
@@ -262,7 +277,7 @@ if len(notebooks_list) > 0:
         with placehold_data_edit_group_b:
             placehold_container_dt_edit_group_b = st.container()
             with placehold_container_dt_edit_group_b:
-                col1, col2, col3 = st.columns(3)
+                col1, col2, col3, col4 = st.columns(4)
                 with col1:
                     read_aloud_b = st.checkbox('Read aloud', value=True, key='read_aloud_b', disabled=True)
                 with col2:
@@ -273,6 +288,7 @@ if len(notebooks_list) > 0:
                                                 and page_section_group_b.distillated else False,
                                             disabled=True if page_section_group_b \
                                                 and page_section_group_b.distillated else False)
+                col4.markdown(f'Date: {selected_day}')
 
         if not dfb.empty:
             if read_aloud_b and not translate_b and not distill_b:
@@ -296,9 +312,9 @@ if len(notebooks_list) > 0:
                     key='dt_edit_group_b'
                 )
 
-                btn_update_b = placehold_container_dt_edit_group_b.button('RECORD TRANSLATION', 
+                btn_update_b = placehold_container_dt_edit_group_b.button('RECORD GROUP B TRANSLATION', 
                                                                         use_container_width=True, 
-                                                                        type='primary', 
+                                                                        type='secondary', 
                                                                         key='btn_record_group_b')
             
             elif distill_b and not page_section_group_b.distillated:
@@ -327,6 +343,7 @@ if len(notebooks_list) > 0:
                                                             notebook=notebook, 
                                                             group=page_section_group_b.group,
                                                             persit=False)
+                page_section_group_b.translated_sentences  = page_section_update_b.translated_sentences
                 page_section_update_b.section_number = page_section_group_b.section_number
                 try:
                     page_section_dao.update(page_section_update_b)
@@ -335,7 +352,7 @@ if len(notebooks_list) > 0:
                         placehold_container_msg.error(str(error), icon="🚨")
 
             if distill_b and not dfb.empty:
-                if placehold_container_dt_edit_group_b.button('GROUP B FINISH DISTILLATION', 
+                if placehold_container_dt_edit_group_b.button('GROUP B DISTILLATION FINISH', 
                                                             use_container_width=True, 
                                                             type='primary', 
                                                             key='btn_group_b',
@@ -360,10 +377,12 @@ if len(notebooks_list) > 0:
                                                             group=Group.C,
                                                             persit=False)
                         page_section_after_b.set_created_by(page_section_group_b)
-                        page_section_dao.insert(page_section_after_b)
+                        page_section_after_b = page_section_dao.insert(page_section_after_b)
                         
                         st.toast('Distillation was saved!')
                         placehold_data_edit_group_b.success(f'{page_section_after_b} was inserted successfully!')
+
+                        notebook.page_section_list.append(page_section_after_b)
                     except Exception as error:
                         placehold_container_msg.error(str(error), icon="🚨")
                         if 'There is already a page'.upper() in str(error).upper():
@@ -380,7 +399,7 @@ if len(notebooks_list) > 0:
         with placehold_data_edit_group_c:
             placehold_container_dt_edit_group_c = st.container()
             with placehold_container_dt_edit_group_c:
-                col1, col2, col3 = st.columns(3)
+                col1, col2, col3, col4 = st.columns(4)
                 with col1:
                     read_aloud_c = st.checkbox('Read aloud', value=True, key='read_aloud_c', disabled=True)
                 with col2:
@@ -391,7 +410,7 @@ if len(notebooks_list) > 0:
                                                 and page_section_group_c.distillated else False,
                                             disabled=True if page_section_group_c \
                                                 and page_section_group_c.distillated else False)
-
+                col4.markdown(f'Date: {selected_day}')
         if not dfc.empty:
             if read_aloud_c and not translate_c and not distill_c:
                 dfc_distilled = placehold_container_dt_edit_group_c.data_editor(
@@ -413,9 +432,9 @@ if len(notebooks_list) > 0:
                     disabled=['foreign_language', 'mother_tongue'],
                     key='dt_edit_group_c'
                 )
-                btn_update_c = placehold_container_dt_edit_group_c.button('RECORD TRANSLATION', 
+                btn_update_c = placehold_container_dt_edit_group_c.button('RECORD GROUP C TRANSLATION', 
                                                                         use_container_width=True, 
-                                                                        type='primary', 
+                                                                        type='secondary', 
                                                                         key='btn_record_group_c')
             elif distill_c and not page_section_group_c.distillated:
                 dfc_distilled = placehold_container_dt_edit_group_c.data_editor(
@@ -441,6 +460,7 @@ if len(notebooks_list) > 0:
                                                             notebook=notebook, 
                                                             group=page_section_group_c.group,
                                                             persit=False)
+                page_section_group_c.translated_sentences  = page_section_update_c.translated_sentences
                 page_section_update_c.section_number = page_section_group_c.section_number
                 try:
                     page_section_dao.update(page_section_update_c)
@@ -449,7 +469,7 @@ if len(notebooks_list) > 0:
                         placehold_container_msg.error(str(error), icon="🚨")
 
             if distill_c and not dfc.empty:
-                if placehold_container_dt_edit_group_c.button('GROUP C FINISH DISTILLATION', 
+                if placehold_container_dt_edit_group_c.button('GROUP C DISTILLATION FINISH', 
                                                             use_container_width=True, 
                                                             type='primary', 
                                                             key='btn_group_c',
@@ -474,10 +494,11 @@ if len(notebooks_list) > 0:
                                                             group=Group.D,
                                                             persit=False)
                         page_section_after_c.set_created_by(page_section_group_c)
-                        page_section_dao.insert(page_section_after_c)
+                        page_section_after_c = page_section_dao.insert(page_section_after_c)
                         
                         st.toast('Distillation was saved!')
                         placehold_data_edit_group_c.success(f'{page_section_after_c} was inserted successfully!')
+                        notebook.page_section_list.append(page_section_after_c)
                     except Exception as error:
                         placehold_container_msg.error(str(error), icon="🚨")
                         if 'There is already a page'.upper() in str(error).upper():
@@ -494,7 +515,7 @@ if len(notebooks_list) > 0:
         with placehold_data_edit_group_d:
             placehold_container_dt_edit_group_d = st.container()
             with placehold_container_dt_edit_group_d:
-                col1, col2, col3 = st.columns(3)
+                col1, col2, col3, col4 = st.columns(4)
                 with col1:
                     read_aloud_d = st.checkbox('Read aloud', value=True, key='read_aloud_d', disabled=True)
                 with col2:
@@ -505,6 +526,7 @@ if len(notebooks_list) > 0:
                                                 and page_section_group_d.distillated else False,
                                             disabled=True if page_section_group_d \
                                                 and page_section_group_d.distillated else False)
+                col4.markdown(f'Date: {selected_day}')
 
         if not dfd.empty:
             if read_aloud_d and not translate_d and not distill_d:
@@ -528,9 +550,9 @@ if len(notebooks_list) > 0:
                         else ['translated_sentence', 'foreign_language'],
                     key='dt_edit_group_d'
                 )
-                btn_update_d = placehold_container_dt_edit_group_d.button('RECORD TRANSLATION GROUP D', 
+                btn_update_d = placehold_container_dt_edit_group_d.button('RECORD GROUP D TRANSLATION', 
                                                                         use_container_width=True, 
-                                                                        type='primary', 
+                                                                        type='secondary', 
                                                                         key='btn_record_group_d')
             elif distill_d and not page_section_group_d.distillated:
                 dfd_distilled = placehold_container_dt_edit_group_d.data_editor(
@@ -556,6 +578,7 @@ if len(notebooks_list) > 0:
                                                             notebook=notebook, 
                                                             group=page_section_group_d.group,
                                                             persit=False)
+                page_section_group_d.translated_sentences  = page_section_update_d.translated_sentences
                 page_section_update_d.section_number = page_section_group_d.section_number
                 try:
                     page_section_dao.update(page_section_update_d)
@@ -564,7 +587,7 @@ if len(notebooks_list) > 0:
                         placehold_container_msg.error(str(error), icon="🚨")
 
             if distill_d and not dfd.empty:
-                if placehold_container_dt_edit_group_d.button('GROUP D FINISH DISTILLATION', 
+                if placehold_container_dt_edit_group_d.button('GROUP D DISTILLATION FINISH', 
                                                             use_container_width=True, 
                                                             type='primary', 
                                                             key='btn_group_d',
@@ -589,10 +612,11 @@ if len(notebooks_list) > 0:
                                                             group=Group.NEW_PAGE,
                                                             persit=False)
                         page_section_after_d.set_created_by(page_section_group_d)
-                        page_section_dao.insert(page_section_after_d)
+                        page_section_after_d = page_section_dao.insert(page_section_after_d)
 
                         st.toast('Distillation was saved!')
                         placehold_data_edit_group_d.success(f'{page_section_after_d} was inserted successfully!')
+                        notebook.page_section_list.append(page_section_after_d)
                     except Exception as error:
                         placehold_container_msg.error(str(error), icon="🚨")
                         if 'There is already a page'.upper() in str(error).upper():
@@ -600,11 +624,6 @@ if len(notebooks_list) > 0:
         else:
             placehold_data_edit_group_d.warning('⚠️There is no a list of expressions in "Group D" to distill on the selected day!')
     
-    notebooks_list = notebook_dao.get_all()
-    notebook_dict = {n.name: n for n in notebooks_list}
-
-    notebook = notebook_dict.get(selected_notebook)
-
     col_group_1.markdown(f'**GroupA:** {notebook.count_page_section_by_group(group=Group.A):0>7}')
     col_group_2.markdown(f'**GroupB:** {notebook.count_page_section_by_group(group=Group.B):0>7}')
     col_group_3.markdown(f'**GroupC:** {notebook.count_page_section_by_group(group=Group.C):0>7}')
@@ -613,3 +632,4 @@ if len(notebooks_list) > 0:
 else:
     st.warning('⚠️Attention! There are no notebooks registred!')
     st.markdown('[Create a Notebook](Add%20New%20Notebook)')
+ 

@@ -15,16 +15,26 @@ placehold_container_msg.empty()
 add_page_title()  # Optional method to add title and icon to current page
 
 
+page_section_dao = PageSectionDAO()
+notebook_dao = NotebookDAO()
+
+if 'notebook_list' not in st.session_state:
+    st.session_state.notebook_list = notebook_dao.get_all()
+
+
+def on_change_session_state_notebook_list():
+    st.session_state.notebook_list = notebook_dao.get_all()
+
+
 def on_change_notebook():
     st.session_state.flag_alter_calendar = not st.session_state.flag_alter_calendar
+    on_change_session_state_notebook_list()
 
 
 if 'flag_alter_calendar' not in st.session_state:
     st.session_state.flag_alter_calendar = True
 
-page_section_dao = PageSectionDAO()
-notebook_dao = NotebookDAO()
-notebooks_list = notebook_dao.get_all()
+notebooks_list = st.session_state.notebook_list
 notebook_dict = {n.name: n for n in notebooks_list}
 
 if len(notebooks_list) > 0:
@@ -35,10 +45,10 @@ if len(notebooks_list) > 0:
 
     notebook: Notebook = notebook_dict.get(selected_notebook)
 
+
     st.title(f'NOTEBOOK - {notebook.name.upper()}')
 
-    col_group_1, col_group_2, col_group_3, col_group_4 = st.sidebar.columns(4
-                                                                            )
+    col_group_1, col_group_2, col_group_3, col_group_4 = st.sidebar.columns(4)
     st.sidebar.markdown("[Add New Headlist](Add%20New%20HeadList)")
     st.sidebar.markdown("[Distillation](Distillation)")
 
@@ -72,7 +82,7 @@ if len(notebooks_list) > 0:
     }
 
     
-
+    
     if st.session_state.flag_alter_calendar:
         state = calendar(
             events=events,
@@ -86,20 +96,11 @@ if len(notebooks_list) > 0:
             key=mode+'2',
         )
 
-    # state = calendar(
-    #     events=st.session_state.get("events", events),
-    #     options=calendar_options,
-    #     key=mode,
-    # )
+    st.button('UPDATE CALENDAR', 
+              use_container_width=True, 
+              type='primary', 
+              on_click=on_change_notebook)
 
-    # if state.get("eventsSet") is not None:
-    #     st.session_state["events"] = state["eventsSet"]
-    
-    # st.write(state)
-
-    # st.markdown("## API reference")
-    
-    # st.help(calendar) 
 else:
     st.warning('⚠️Attention! There are no notebooks registred!')
     st.markdown('[Create a Notebook](Add%20New%20Notebook)')

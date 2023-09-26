@@ -2,7 +2,7 @@
 # ptvsd.enable_attach(address=('localhost', 5678))
 # ptvsd.wait_for_attach() # Only include this line if you always want to attach the debugger
 
-import datetime
+import os
 
 import streamlit as st
 from st_pages import Page, Section, add_page_title, show_pages
@@ -10,20 +10,20 @@ from st_pages import Page, Section, add_page_title, show_pages
 st.set_page_config(layout='wide')
 
 show_pages(
-    [   Page("streamlit_app.py", "Home", "🏡"),
+    [   Page("streamlit_app.py", "GOLD LIST METHOD", "🪙"),
         Page("app/pages/calendar.py", "Calendar", "🗓️"),
         Page("app/pages/distillation.py", "Distillation", "🧠"),
         Section(name="Notebooks", icon=":books:"),
         # Can use :<icon-name>: or the actual icon 
-        Page("app/pages/add_new_notebook.py", "Add New Notebook", "📖"),
-        Page("app/pages/add_new_headlist.py", "Add New HeadList", "📃"),
+        Page("app/pages/add_new_notebook.py", "Add Notebook", "📖"),
+        Page("app/pages/add_new_headlist.py", "Add HeadList", "📃"),
     ]
 )
 
 placehold_container_msg = st.container()
 placehold_container_msg.empty()
 
-# add_page_title()  # Optional method to add title and icon to current page
+add_page_title()  # Optional method to add title and icon to current page
 
 
 title = 'GOLD LIST METHOD'
@@ -42,7 +42,7 @@ Mastering a new language can open doors to incredible opportunities, whether for
 
 """
 
-st.title(title)
+# st.title(title)
 st.header(subtitle)
 
 # Use HTML para justificar o texto
