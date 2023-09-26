@@ -96,7 +96,7 @@ if len(notebooks_list) > 0:
             key=mode+'2',
         )
 
-    st.button('UPDATE CALENDAR', 
+    st.button('CALENDAR REFLASH', 
               use_container_width=True, 
               type='primary', 
               on_click=on_change_notebook)
