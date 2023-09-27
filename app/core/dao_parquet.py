@@ -2,7 +2,7 @@ import datetime
 import os.path
 from pathlib import Path
 from typing import List
-
+import numpy as np
 import pandas as pd
 
 from app.core.dao import AbstractDAO
@@ -75,9 +75,9 @@ class NotebookDAO(AbstractDAO):
         
         notebook_list = []
         for index, row in df_notebook.iterrows():
-            notebook_filter = Notebook(id_=row['id'])
-            page_section_filter = PageSection(notebook=notebook_filter)
-            page_section_list = page_section_dao.find_by_field(page_section_filter)
+            page_section_list = page_section_dao.find_by_field(
+                PageSection(notebook=Notebook(id_=row['id']))
+            )
 
             notebook_list.append(
                 Notebook(name=row['name'],
@@ -93,6 +93,7 @@ class NotebookDAO(AbstractDAO):
             )
 
         return notebook_list
+
 
     def get_by_id(self, entity: Notebook) -> Notebook:
         df = pd.read_parquet(notebook_file)
@@ -159,8 +160,11 @@ class PageSectionDAO(AbstractDAO):
         if not next_section_number:
             next_section_number = 1
 
-        if not next_id:
+        if pd.isna(next_id):
             next_id = 1
+
+        if pd.isna(next_page):
+            next_page = 1
 
         next_page = entity.page_number if entity.page_number is not None else next_page
     
@@ -280,7 +284,8 @@ class PageSectionDAO(AbstractDAO):
         for attr, value in filters.items():
             if not bool(value): continue
 
-            if isinstance(value, Notebook):
+            if attr in 'notebook':
+
                 attr = 'notebook_id'
                 value = int(value.id)
             elif isinstance(value, Group):
