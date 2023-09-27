@@ -165,7 +165,11 @@ class PageSection():
     
     def clone(self):
         return self.__class__(
+<<<<<<< HEAD
             id_=None,
+=======
+            id_=self.id,
+>>>>>>> e949a4dc9c60514cc2ce72e94ba04463b1cdf5f9
             section_number=self.section_number,
             page_number=self.page_number,
             group=self.group,
