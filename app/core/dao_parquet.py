@@ -319,7 +319,7 @@ class PageSectionDAO(AbstractDAO):
             memorized_list           = []
             id_list                  = []
 
-            df_page = df_result[df['section_number'] == page]
+            df_page = df_result.loc[df_result['section_number'] == page]
             for index, row in df_page.iterrows():
                 id_list.append(row['id'])
                 sentence_id_list.append(row['sentence_id'])

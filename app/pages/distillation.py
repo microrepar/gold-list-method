@@ -631,5 +631,5 @@ if len(notebooks_list) > 0:
 
 else:
     st.warning('⚠️Attention! There are no notebooks registred!')
-    st.markdown('[Create a Notebook](Add%20New%20Notebook)')
+    st.markdown('[Create a Notebook](Add%20Notebook)')
  

@@ -49,7 +49,7 @@ if len(notebooks_list) > 0:
     st.title(f'NOTEBOOK - {notebook.name.upper()}')
 
     col_group_1, col_group_2, col_group_3, col_group_4 = st.sidebar.columns(4)
-    st.sidebar.markdown("[Add New Headlist](Add%20New%20HeadList)")
+    st.sidebar.markdown("[Add New Headlist](Add%20HeadList)")
     st.sidebar.markdown("[Distillation](Distillation)")
 
     st.sidebar.divider()
@@ -103,4 +103,4 @@ if len(notebooks_list) > 0:
 
 else:
     st.warning('⚠️Attention! There are no notebooks registred!')
-    st.markdown('[Create a Notebook](Add%20New%20Notebook)')
+    st.markdown('[Create a Notebook](Add%20Notebook)')
