@@ -73,6 +73,7 @@ class Notebook():
     def count_page_section_by_group(self, *, group):
        return len([p for p in self.page_section_list if p.created_at and p.group.value == group.value])
 
+    
   
 
 class Sentence():
@@ -161,6 +162,23 @@ class PageSection():
         self.notebook                     = notebook
         self._distillation_actual: datetime.date = distillation_actual
         self.set_created_by(created_by)        # section_number from  PageSection
+    
+    def clone(self):
+        return self.__class__(
+            id_=None,
+            section_number=self.section_number,
+            page_number=self.page_number,
+            group=self.group,
+            created_at=None,
+            created_by=self.created_by,
+            distillation_at=None,
+            distillation_actual=self.distillation_actual,
+            distillated=True,
+            sentences=self.sentences,
+            translated_sentences=self.translated_sentences,
+            memorializeds=self.memorializeds,
+            notebook=self.notebook
+        )
     
     @property
     def distillated(self):
