@@ -126,14 +126,15 @@ if len(notebooks_list) > 0:
             
             notebook.page_section_list.append(page_section)
 
-            page_section.created_at = None
-            page_section.distillation_at = datetime.datetime.strptime(str(selected_day), '%Y-%m-%d').date()
-            page_section.distillated = True
+            page_section_clone = page_section.clone()
+            page_section_clone.distillation_at = datetime.datetime.strptime(str(selected_day), '%Y-%m-%d').date()
 
-            page_section_dao.insert(page_section)
+
+            page_section_dao.insert(page_section_clone)
         
             st.toast('Page section was inserted successfully.')
             placehold_btn_insert.empty()
+
             
         except Exception as error:
             st.toast('Something went wrong!')
