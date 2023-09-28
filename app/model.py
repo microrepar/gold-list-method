@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 import datetime
 from enum import Enum
 from typing import List
@@ -148,7 +147,7 @@ class PageSection():
                  sentences            : List[Sentence]=[],
                  translated_sentences : List[str]=[],
                  memorializeds        : List[bool]=[],
-                 notebook             : int=None):
+                 notebook             : Notebook=None):
         self.id                           = id_
         self.section_number               = section_number
         self.page_number                  = page_number

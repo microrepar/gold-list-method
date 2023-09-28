@@ -5,8 +5,8 @@ import streamlit as st
 from st_pages import add_page_title
 
 from app.core.dao_parquet import NotebookDAO, PageSectionDAO, SentenceDAO
-from app.model import Group, Notebook, PageSection
 from app.core.service import build_page_section_with_sentence_list
+from app.model import Group, Notebook, PageSection
 
 st.set_page_config(layout='wide')
 

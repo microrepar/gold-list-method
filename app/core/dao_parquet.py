@@ -2,6 +2,7 @@ import datetime
 import os.path
 from pathlib import Path
 from typing import List
+
 import numpy as np
 import pandas as pd
 
@@ -285,7 +286,6 @@ class PageSectionDAO(AbstractDAO):
             if not bool(value): continue
 
             if attr in 'notebook':
-
                 attr = 'notebook_id'
                 value = int(value.id)
             elif isinstance(value, Group):
